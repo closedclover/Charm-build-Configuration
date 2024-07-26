@@ -22,7 +22,9 @@ minecraft {
             workingDirectory project.file('run')
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
-            arg "-mixin.config=" + props.mod_id + ".mixins.json", props.mod_id + ".charmony.client.mixins.json", props.mod_id + ".charmony.common.mixins.json" // Comment out if no common mixins.
+            arg "-mixin.config=" + props.mod_id + ".mixins.json" // Comment out if no common mixins.
+            arg "-mixin.config=" + props.mod_id + ".charmony.client.mixins.json"
+            arg "-mixin.config=" + props.mod_id + ".charmony.common.mixins.json"
             source sourceSets.main
         }
 
@@ -30,7 +32,8 @@ minecraft {
             workingDirectory project.file('run')
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
-            arg "-mixin.config=" + props.mod_id + ".mixins.json", props.mod_id + ".charmony.common.mixins.json" // Comment out if no common mixins.
+            arg "-mixin.config=" + props.mod_id + ".mixins.json" // Comment out if no common mixins.
+            arg "-mixin.config=" + props.mod_id + ".charmony.common.mixins.json"
             source sourceSets.main
         }
     }
