@@ -65,14 +65,14 @@ mixin {
 jar {
     manifest {
         attributes([
-            "Specification-Title"     : props.mod_id,
-            "Specification-Vendor"    : props.mod_id,
-            "Specification-Version"   : "1", // We are version 1 of ourselves
-            "Implementation-Title"    : props.mod_id,
-            "Implementation-Version"  : project.jar.archiveVersion,
-            "Implementation-Vendor"   : props.mod_id,
+            "Specification-Title": props.mod_id,
+            "Specification-Vendor": props.mod_id,
+            "Specification-Version": "1", // We are version 1 of ourselves
+            "Implementation-Title": props.mod_id,
+            "Implementation-Version": project.jar.archiveVersion,
+            "Implementation-Vendor": props.mod_id,
             "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
-            "MixinConfigs"    : props.mod_id + ".mixins.json", props.mod_id + ".charmony.client.mixins.json", props.mod_id + ".charmony.common.mixins.json" // Comment out if no common mixins.
+            "MixinConfigs": props.mod_id + ".mixins.json", "charm.charmony.client.mixins.json", "charm.charmony.common.mixins.json" // Comment out if no common mixins.
         ])
     }
 }
