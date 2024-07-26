@@ -7,7 +7,7 @@ apply plugin: 'org.spongepowered.mixin'
 def props = new Properties()
 file("gradle.properties").withInputStream { props.load(it) }
 
-archivesBaseName = "${props.mod_id}-fabric-${props.minecraft_version}"
+archivesBaseName = "${props.mod_id}-forge-${props.minecraft_version}"
 version = props.mod_version
 group = props.maven_group
 
@@ -49,10 +49,6 @@ sourceSets {
 
 dependencies {
     minecraft "net.minecraftforge:forge:${props.minecraft_version}-${props.forge_version}"
-
-    mappings loom.layered {
-        officialMojangMappings()
-    }
 
     // This generates the <mod_id>-refmap.json in the jar.
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
