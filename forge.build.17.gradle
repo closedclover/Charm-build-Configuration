@@ -1,0 +1,188 @@
+import groovy.json.JsonBuilder
+import groovy.json.JsonSlurper
+
+apply plugin: 'org.spongepowered.mixin'
+
+// Load props from parent gradle.properties.
+def props = new Properties()
+file("gradle.properties").withInputStream { props.load(it) }
+
+archivesBaseName = "${props.mod_id}-fabric-${props.minecraft_version}"
+version = props.mod_version
+group = props.maven_group
+
+println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
+
+minecraft {
+    mappings channel: "${props.mapping_channel}", version: "${props.mapping_version}"
+    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+    copyIdeResources = true
+    runs {
+        client {
+            workingDirectory project.file('run')
+            property 'forge.logging.markers', 'REGISTRIES'
+            property 'forge.logging.console.level', 'debug'
+            arg "-mixin.config=" + props.mod_id + ".mixins.json" // Comment out if no common mixins.
+            source sourceSets.main
+        }
+
+        server {
+            workingDirectory project.file('run')
+            property 'forge.logging.markers', 'REGISTRIES'
+            property 'forge.logging.console.level', 'debug'
+            arg "-mixin.config=" + props.mod_id + ".mixins.json" // Comment out if no common mixins.
+            source sourceSets.main
+        }
+    }
+}
+
+accessConverter {
+    mcVersion "1.20.1"
+    //Converts the AccessWidener found at the fileToConvert location into an accesstransformer dropped into the fileToOutput location.
+    convertAW {
+        //optional, sorts the input file
+        it.sortInput(true)
+        it.fileToConvert(project(':Common').file("/src/main/resources/${props.mod_id}.accesswidener"))
+        it.fileOutput(project(":Forge").file("/src/main/resources/META-INF/accesstransformer.cfg"))
+    }
+    //Does the opposite, converts an AT into AW.
+    convertAT {
+        //optional sorts the input file
+        it.convertFrom(rootProject.file("testtransformer.cfg"))
+        it.saveConversionTo(rootProject.file("outputwidener.accesswidener"))
+        it.sortInput(true)
+    }
+    //It is not recommended to have both configurations enabled nor to have one of them depend on the files of the other one.
+    //Keep it mind convertAW is fired first and then convertAT
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir "src/main/java"
+        }  
+        resources {
+            srcDir 'src/main/resources'
+        }
+    }
+}
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${props.minecraft_version}-${props.forge_version}"
+
+    mappings loom.layered {
+        officialMojangMappings()
+    }
+
+    // This generates the <mod_id>-refmap.json in the jar.
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+
+    // Required for javax.annotation.Nullable to work properly.
+    implementation 'com.google.code.findbugs:jsr305:3.0.2'
+}
+
+mixin {
+    // Adds the generated <mod_id>-refmap.json to the jar.
+    add sourceSets.main, props.mod_id + ".refmap.json"
+}
+
+jar {
+    manifest {
+        attributes([
+            "Specification-Title"     : props.mod_id,
+            "Specification-Vendor"    : props.mod_id,
+            "Specification-Version"   : "1", // We are version 1 of ourselves
+            "Implementation-Title"    : props.mod_id,
+            "Implementation-Version"  : project.jar.archiveVersion,
+            "Implementation-Vendor"   : props.mod_id,
+            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+            "MixinConfigs"    : props.mod_id + ".mixins.json" // Comment out if no common mixins.
+        ])
+    }
+}
+
+jar.finalizedBy('reobfJar')
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifact jar
+        }
+    }
+    repositories {
+        maven {
+            url "file://${project.projectDir}/mcmodsrepo"
+        }
+    }
+}
+
+processResources {
+    inputs.property "mod_version", props.mod_version
+
+    // Replace ${mod_version}, ${minecraft_version} and ${loader} with the correct values.
+    filesMatching(["fabric.mod.json", "pack.mcmeta"]) {
+        expand (
+            "mod_id": props.mod_id,
+            "mod_version": props.mod_version,
+            "minecraft_version": props.minecraft_version,
+            "loader_version": props.loader_version,
+            "charmony_version": props.charmony_version,
+            "discord_link": props.discord_link
+        )
+    }
+
+    // Replace ${refmap_file} in all json files with the full path to the generated refmap.
+    filesMatching([props.mod_id + ".mixins.json", "charmony.client.mixins.json", "charmony.common.mixins.json"]) {
+        expand "refmap_file": props.mod_id + "-fabric-${props.minecraft_version}" + "-refmap.json"
+    }
+    
+    duplicatesStrategy(DuplicatesStrategy.INCLUDE)
+
+    // Expand resource templates.
+    filesMatching("**/*.template.json") {
+        JsonBuilder json = new JsonBuilder(new JsonSlurper().parseText(it.file.text))
+        String template = new JsonBuilder(json.content.template).toPrettyString()
+        def v = json.content.variants
+        Iterable<String> variants
+        if (v instanceof String) {
+            def f = file("${sourceSets.main.resources.srcDirs[0]}/META-INF/variants/${v}.variants");
+            if (!f.exists()) {
+                throw new Exception("Can't find ${f.name}")
+            }
+            variants = f.readLines().findAll { !it.isEmpty() }
+        }
+        else variants = v
+        File dir = it.relativePath.parent.getFile(file("$buildDir/resources/main"))
+        dir.mkdirs()
+        String name = it.name.replace(".template.json", ".json")
+        // String[] replacements = v instanceof String ? variants.remove(0).split(':') : ["VARIANT"]
+        String[] replacements = variants.remove(0).split("\\|");
+        for (variant in variants) {
+            Map<String, String> s = [replacements, variant.split("\\|", -1)].transpose().collectEntries()
+            def file = new File(dir, s.inject(name) { r, e -> r.replace(e.key, e.value) })
+            if (!file.exists()) {
+                file.createNewFile()
+                file.text = s.inject(template) { r, e -> r.replace(e.key, e.value) }
+            }
+        }
+        it.exclude()
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 17
+    options.encoding = 'UTF-8'
+}
+
+repositories {
+    flatDir {
+        dir 'libs'
+        dir 'src/main/resources/META-INF/jarjar'
+    }
+}
+
+jar {
+    from("LICENSE") {
+        rename { "${it}_${project.archivesBaseName}"}
+    }
+}
