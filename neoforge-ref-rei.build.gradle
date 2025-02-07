@@ -1,0 +1,13 @@
+// Load props from parent gradle.properties.
+def props = new Properties()
+file("gradle.properties").withInputStream { props.load(it) }
+
+dependencies {
+   // REI integration. Disable the modRuntime line if REI is broken.
+   compileOnly "me.shedaniel:RoughlyEnoughItems-api-neoforge:${project.rei_version}"
+   implementation "me.shedaniel:RoughlyEnoughItems-neoforge:${project.rei_version}" // <- disable this on server-side, it's breaking
+}
+
+repositories {
+   maven { url "https://maven.shedaniel.me" }
+}
