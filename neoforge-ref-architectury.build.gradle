@@ -3,7 +3,7 @@ def props = new Properties()
 file("gradle.properties").withInputStream { props.load(it) }
 
 dependencies {
-   implementation "dev.architectury:architectury-neoforge:${project.architectury_version}")
+   implementation "dev.architectury:architectury-neoforge:${project.architectury_version}"
 }
 
 repositories {
