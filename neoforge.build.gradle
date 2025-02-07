@@ -52,7 +52,7 @@ processResources {
     inputs.property "mod_version", props.mod_version
 
     // Replace ${mod_version}, ${minecraft_version} and ${loader} with the correct values.
-    filesMatching(["fabric.mod.json", "pack.mcmeta"]) {
+    filesMatching(["META-INF/neoforge.mods.toml", "pack.mcmeta"]) {
         expand (
             "mod_id": props.mod_id,
             "mod_version": props.mod_version,
