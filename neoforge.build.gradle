@@ -11,8 +11,10 @@ base {
     group = props.maven_group
 }
 
-sourceCompatibility = JavaVersion.VERSION_21
-targetCompatibility = JavaVersion.VERSION_21
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
 
 sourceSets {
     main {
@@ -56,18 +58,17 @@ processResources {
         expand (
             "mod_id": props.mod_id,
             "mod_version": props.mod_version,
-            "minecraft_version": props.minecraft_version,
-            "loader_version": props.loader_version,
-            "charmony_version": props.charmony_version,
-            "charm_version": props.charm_version,
+            "architectury_version_range": props.architectury_version_range,
+            "minecraft_version_range": props.minecraft_version_range,
+            "neoforge_version_range": props.neoforge_version_range,
             "discord_link": props.discord_link
         )
     }
 
-    // Replace ${refmap_file} in all json files with the full path to the generated refmap.
-    filesMatching([props.mod_id + ".mixins.json", props.mod_id + ".charmony.client.mixins.json", props.mod_id + ".charmony.common.mixins.json"]) {
-        expand "refmap_file": props.mod_id + "-neoforge-${props.minecraft_version}" + "-refmap.json"
-    }
+//    // Replace ${refmap_file} in all json files with the full path to the generated refmap.
+//    filesMatching([props.mod_id + ".mixins.json", props.mod_id + ".charmony.client.mixins.json", props.mod_id + ".charmony.common.mixins.json"]) {
+//        expand "refmap_file": props.mod_id + "-neoforge-${props.minecraft_version}" + "-refmap.json"
+//    }
     
     duplicatesStrategy(DuplicatesStrategy.INCLUDE)
 
