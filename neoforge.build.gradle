@@ -56,6 +56,7 @@ processResources {
     // Replace ${mod_version}, ${minecraft_version} and ${loader} with the correct values.
     filesMatching(["META-INF/neoforge.mods.toml", "pack.mcmeta"]) {
         expand (
+            "author": props.author,
             "mod_id": props.mod_id,
             "mod_version": props.mod_version,
             "architectury_version_range": props.architectury_version_range,
@@ -116,6 +117,20 @@ repositories {
 jar {
     from("LICENSE") {
         rename { "${it}_${project.archivesName}"}
+    }
+}
+
+tasks.named('jar', Jar).configure {
+    manifest {
+        attributes([
+            "Specification-Title": project.fileName,
+            "Specification-Vendor": project.author,
+            "Specification-Version": project.mod_version,
+            "Implementation-Title": project.fileName,
+            "Implementation-Version": project.mod_version,
+            "Implementation-Vendor" : project.author,
+            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+        ])
     }
 }
 
