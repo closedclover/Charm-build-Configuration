@@ -121,10 +121,10 @@ jar {
     
     manifest {
         attributes([
-            "Specification-Title": project.fileName,
+            "Specification-Title": project.mod_id,
             "Specification-Vendor": project.author,
             "Specification-Version": project.mod_version,
-            "Implementation-Title": project.fileName,
+            "Implementation-Title": project.mod_id,
             "Implementation-Version": project.mod_version,
             "Implementation-Vendor" : project.author,
             "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
