@@ -30,7 +30,7 @@ sourceSets {
 neoForge {
     version = "${props.neoforge_version}"
 
-    accessTransformers = props.files("src/main/resources/META-INF/accesstransformer.cfg")
+    accessTransformers = project.files("src/main/resources/META-INF/accesstransformer.cfg")
 
     parchment {
         minecraftVersion = props.parchment_minecraft_version
