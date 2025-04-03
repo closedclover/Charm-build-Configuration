@@ -29,22 +29,57 @@ sourceSets {
 
 neoForge {
     version = "${props.neoforge_version}"
-    validateAccessTransformers = true
 
-    runs {
-        client {
-            client()
-        }
-        data {
-            data()
-        }
-        server {
-            server()
-        }
+    accessTransformers = props.files("src/main/resources/META-INF/accesstransformer.cfg")
+
+    parchment {
+        minecraftVersion = props.parchment_minecraft_version
+        mappingsVersion = props.parchment_version
     }
 
+    runs {
+        configureEach {
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            jvmArguments = ["-XX:+IgnoreUnrecognizedVMOptions", "-XX:+AllowEnhancedClassRedefinition"]
+            //jvmArgs("-XX:-OmitStackTraceInFastThrow") // uncomment when you get exceptions with null messages etc
+            //jvmArgs '-XX:+UnlockCommercialFeatures' // uncomment for profiling
+
+            systemProperty 'mixin.debug.verbose', 'true'
+            systemProperty 'mixin.debug.export', 'true'
+
+            logLevel = org.slf4j.event.Level.DEBUG
+        }
+
+        client {
+            client()
+
+            // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
+            systemProperty 'neoforge.enabledGameTestNamespaces', props.mod_id
+        }
+
+        server {
+            server()
+
+            gameDirectory = project.file('run/server')
+
+            programArgument '--nogui'
+            systemProperty 'neoforge.enabledGameTestNamespaces', props.mod_id
+        }
+
+        data {
+            data()
+
+            programArguments.addAll('--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath())
+        }
+
+        gameTestServer {
+            type = "gameTestServer"
+            systemProperty 'neoforge.enabledGameTestNamespaces', props.mod_id
+        }
+    }
+    
     mods {
-        testproject {
+        "${props.mod_id}" {
             sourceSet sourceSets.main
         }
     }
@@ -59,7 +94,6 @@ processResources {
             "author": props.author,
             "mod_id": props.mod_id,
             "mod_version": props.mod_version,
-            "architectury_version_range": props.architectury_version_range,
             "minecraft_version_range": props.minecraft_version_range,
             "neoforge_version_range": props.neoforge_version_range,
             "discord_link": props.discord_link
@@ -116,17 +150,17 @@ repositories {
 
 jar {
     from("LICENSE") {
-        rename { "${it}_${project.archivesName}"}
+        rename { "${it}_${props.archivesName}"}
     }
     
     manifest {
         attributes([
-            "Specification-Title": project.mod_id,
-            "Specification-Vendor": project.author,
-            "Specification-Version": project.mod_version,
-            "Implementation-Title": project.mod_id,
-            "Implementation-Version": project.mod_version,
-            "Implementation-Vendor" : project.author,
+            "Specification-Title": props.mod_id,
+            "Specification-Vendor": props.author,
+            "Specification-Version": props.mod_version,
+            "Implementation-Title": props.mod_id,
+            "Implementation-Version": props.mod_version,
+            "Implementation-Vendor" : props.author,
             "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
