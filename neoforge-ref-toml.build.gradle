@@ -4,7 +4,7 @@ file("gradle.properties").withInputStream { props.load(it) }
 
 dependencies {
     // TOML support.
-    implementation jarJar "com.moandjiezana.toml:toml4j:${props.toml4j_version}"
+    implementation(jarJar("com.moandjiezana.toml:toml4j:${props.toml4j_version}"))
     implementation "com.electronwill.night-config:core:${props.tomlnc_version}"
     implementation "com.electronwill.night-config:toml:${props.tomlnc_version}"
 }
